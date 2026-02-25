@@ -1,6 +1,6 @@
 ---
 name: openclaw-ops
-version: 1.1.0
+version: 1.2.0
 description: Use when diagnosing, repairing, or maintaining an OpenClaw Gateway on the same machine. Designed for rescue agents to fix a down gateway or check operational health. Supports Linux (systemd) and macOS (launchd).
 repository: https://github.com/dinstein/openclaw-ops-skill
 ---
