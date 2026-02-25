@@ -1,40 +1,35 @@
-# openclaw-ops-skill
+# openclaw-ops
 
-Claude Code skill for OpenClaw server operations and troubleshooting.
+An [OpenClaw](https://openclaw.ai) skill for operational maintenance of OpenClaw Gateway running as a systemd service.
 
-## What is this?
+Designed to be used by a **rescue agent** (Claude Code, secondary OpenClaw instance, or any AI coding agent) running on the same machine as the main OpenClaw Gateway.
 
-A Claude Code skill (`.claude/skills/`) that gives Claude Code the knowledge to diagnose and fix OpenClaw issues remotely. Designed to work with Claude Code Remote Control — when OpenClaw is down, connect from your phone and let Claude Code fix it.
+## What it covers
 
-## Features
-
-- Quick 6-step diagnosis checklist
-- Common issue fixes (service crash, config errors, channel failures)
-- All critical file paths and commands
-- Safety rules (backup before edit, validate JSON, never print secrets)
-- Network/Tailscale info
+- **Status checks** — service health, port, process, config validation
+- **Config repair** — JSON fixing, common misconfiguration patterns
+- **Restart & recovery** — crash diagnosis, safe restart procedures
+- **Log diagnosis** — journalctl patterns, common error identification
+- **systemd setup** — from-scratch service configuration with linger
+- **Updates** — upgrade, version check, rollback
+- **Environment validation** — Node.js, dependencies, port conflicts
+- **Backup & restore** — critical files, backup/restore procedures
 
 ## Install
 
-Copy `SKILL.md` to your OpenClaw server:
+### From ClawHub
 
 ```bash
-mkdir -p ~/.openclaw/.claude/skills/openclaw-ops
-cp SKILL.md ~/.openclaw/.claude/skills/openclaw-ops/
+clawhub install openclaw-ops
 ```
 
-## Usage
+### Manual
 
-Start Claude Code Remote Control on your server:
+Copy `SKILL.md` to your agent's skills directory:
 
 ```bash
-claude remote-control
+cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
 ```
-
-Connect from phone/browser, then say:
-- "OpenClaw is down, help me fix it"
-- "Check OpenClaw logs for errors"
-- "Restart OpenClaw and verify it's working"
 
 ## License
 
