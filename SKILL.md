@@ -114,7 +114,8 @@ Common JSON issues: trailing comma, missing quotes, unescaped characters. The er
 
 **Config schema validation:**
 ```bash
-openclaw config get  # validates and prints current config
+openclaw config get gateway  # check gateway config section
+openclaw config get channels  # check channels config section
 ```
 
 **Common config errors:**
