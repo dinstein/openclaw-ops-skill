@@ -154,6 +154,25 @@ tmux attach -t rescue
 | 备份 | 🟢 运维 | 配置、agents、workspace 备份 |
 | Tailscale 检查 | 🟢 运维 | 反向代理验证 |
 
+## 前置要求
+
+Rescue Agent 需要：
+
+- **Shell 访问权限** — 与 OpenClaw Gateway 在同一台机器上
+- **读写权限** — `~/.openclaw/` 目录（配置、agents、sessions）
+- **Node.js 18+** 和 npm（用于 `openclaw` CLI）
+- **可选：** Tailscale CLI（反向代理排查）
+
+### 安全说明
+
+本技能会指导 Agent：
+- 读取和修改 OpenClaw 配置文件（修改前必定备份）
+- 访问包含 token 的 env 文件（但**绝不打印内容**）
+- 重启系统服务（systemd / launchd）
+- 删除旧的 session transcript（需用户确认）
+
+所有破坏性操作都需要用户明确批准。
+
 ## 工作原理
 
 这是一个**纯文档技能** — 无脚本、无外部依赖、无框架绑定。安装到任何能读取 Markdown 并执行 shell 命令的 Agent 中即可。它教会 Agent：

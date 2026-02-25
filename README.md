@@ -154,6 +154,25 @@ tmux attach -t rescue
 | Backup | 🟢 Health | Config, agents, workspace backup |
 | Tailscale check | 🟢 Health | Reverse proxy verification |
 
+## Requirements
+
+The rescue agent needs:
+
+- **Shell access** on the same machine as the OpenClaw Gateway
+- **Read/write access** to `~/.openclaw/` (config, agents, sessions)
+- **Node.js 18+** and npm (for the `openclaw` CLI)
+- **Optional:** Tailscale CLI (for reverse proxy troubleshooting)
+
+### Security considerations
+
+This skill instructs the agent to:
+- Read and modify OpenClaw config files (always with backup first)
+- Access env files containing tokens (but **never print them**)
+- Restart system services (systemd / launchd)
+- Delete old session transcripts (only with user confirmation)
+
+All destructive operations require explicit user approval.
+
 ## How it works
 
 This is a **pure documentation skill** — no scripts, no external dependencies, no framework lock-in. Install it in any agent that can read markdown and run shell commands. It teaches the agent:

@@ -1,8 +1,19 @@
 ---
 name: openclaw-ops
-version: 1.2.0
+version: 1.2.1
 description: Use when diagnosing, repairing, or maintaining an OpenClaw Gateway on the same machine. Designed for rescue agents to fix a down gateway or check operational health. Supports Linux (systemd) and macOS (launchd).
 repository: https://github.com/dinstein/openclaw-ops-skill
+requirements:
+  - Shell access on the same machine as the OpenClaw Gateway
+  - Read/write access to ~/.openclaw/ (config, agents, sessions)
+  - Read access to systemd user service config (Linux) or LaunchAgents (macOS)
+  - Node.js 18+ and npm (for openclaw CLI)
+  - Optional: Tailscale CLI (for reverse proxy troubleshooting)
+security_notes:
+  - This skill instructs the agent to read and modify OpenClaw config files
+  - The agent will access env files containing tokens (but is instructed never to print them)
+  - Config edits are always preceded by timestamped backups
+  - Destructive operations require user confirmation
 ---
 
 # OpenClaw Operations
