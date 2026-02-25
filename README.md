@@ -65,8 +65,8 @@ These native solutions handle auth, session persistence, and UI out of the box.
 
 Third-party platforms that let you manage and interact with coding agents on remote machines:
 
-- [Happy Coder](https://github.com/anthropics/happy-coder) — Open-source web UI for remote Claude Code access
-- [Hapi](https://hapi.com) — Remote agent management platform
+- [Happy](https://github.com/slopus/happy) — Open-source web UI for remote Claude Code access
+- [Hapi](https://github.com/tiann/hapi) — Remote agent management platform
 - Similar products that support remote shell-capable agent access
 
 These are good when your agent doesn't have native remote control, or when you want a unified dashboard for multiple agents.
