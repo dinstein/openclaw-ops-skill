@@ -10,9 +10,11 @@
 
 ## 安装
 
+> **⚠️ 本技能应安装在 Rescue Agent（Claude Code、备用 OpenClaw 等）上，而不是你要维护的主 OpenClaw Gateway 里。**
+
 ### 在对话中让 Agent 安装
 
-直接在对话里告诉你的 Agent：
+直接在对话里告诉你的 Rescue Agent：
 
 ```
 > 从 https://github.com/dinstein/openclaw-ops-skill 安装 openclaw-ops 技能

@@ -10,9 +10,11 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 
 ## Install
 
+> **⚠️ Install this skill on your rescue agent (Claude Code, secondary OpenClaw, etc.), NOT on the main OpenClaw Gateway you want to maintain.**
+
 ### Ask your agent to install it
 
-Just tell your agent in a conversation:
+Just tell your rescue agent in a conversation:
 
 ```
 > Install the openclaw-ops skill from https://github.com/dinstein/openclaw-ops-skill
