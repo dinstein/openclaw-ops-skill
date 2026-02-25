@@ -155,16 +155,6 @@ The skill enforces these rules:
 - Never delete workspace files without confirmation
 - Always verify after restart
 
-## Versioning
-
-This skill follows [Semantic Versioning](https://semver.org/):
-
-- **MAJOR** — breaking changes to skill structure or safety rules
-- **MINOR** — new modules, new platform support, new commands
-- **PATCH** — fixes, typos, improved descriptions
-
-Current version: `1.0.0`
-
 ## License
 
 MIT
