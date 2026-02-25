@@ -1,8 +1,8 @@
 # openclaw-ops `v1.0.0`
 
-An [OpenClaw](https://openclaw.ai) skill for operational maintenance of OpenClaw Gateway running as a persistent service.
+A skill that teaches any AI agent how to operate and maintain an [OpenClaw](https://openclaw.ai) Gateway running as a persistent service.
 
-Designed to be used by a **rescue agent** (Claude Code, secondary OpenClaw instance, or any AI coding agent) running on the same machine as the main OpenClaw Gateway.
+Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw, Pi, or any AI coding agent running on the same machine as the OpenClaw Gateway.
 
 Supports both **Linux (systemd)** and **macOS (launchd)**.
 
@@ -105,23 +105,25 @@ openclaw doctor periodically and reports issues.
 clawhub install openclaw-ops
 ```
 
-### Manual (Claude Code)
+### Manual
+
+Copy `SKILL.md` into your agent's skills directory:
 
 ```bash
+# Claude Code
 mkdir -p ~/.claude/skills/openclaw-ops
 cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
-```
 
-### Manual (OpenClaw)
-
-```bash
+# OpenClaw
 mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
 cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
+
+# Other agents — place in whatever skills directory your agent reads from
 ```
 
 ## How it works
 
-This is a **pure documentation skill** — no scripts or external dependencies. It teaches your AI agent:
+This is a **pure documentation skill** — no scripts, no external dependencies, no framework lock-in. Install it in any agent that can read markdown and run shell commands. It teaches the agent:
 
 1. **What to check** — the right commands and files for each situation
 2. **How to interpret** — what the output means and common error patterns
