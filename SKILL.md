@@ -22,6 +22,19 @@ echo "Platform: $OS"
 
 Use the platform-appropriate commands throughout this guide. Both are provided for each module.
 
+## Port Detection
+
+Do NOT assume port 18789. Detect the actual configured port first:
+
+```bash
+# Preferred: read from config
+PORT=$(openclaw config get gateway.port 2>/dev/null | grep -oE '[0-9]+')
+PORT=${PORT:-18789}  # fallback to default only if config unavailable
+echo "Gateway port: $PORT"
+```
+
+Use `$PORT` in all port-related commands throughout this guide.
+
 ## 1. Status Check
 
 ### Quick diagnosis (cross-platform)
@@ -58,13 +71,13 @@ If `openclaw doctor` reports fixable issues, run `openclaw doctor --fix` to auto
 **Linux (systemd):**
 ```bash
 systemctl --user status openclaw-gateway
-ss -tlnp | grep 18789
+ss -tlnp | grep $PORT
 ```
 
 **macOS (launchd):**
 ```bash
 launchctl list | grep openclaw
-lsof -iTCP:18789 -sTCP:LISTEN
+lsof -iTCP:$PORT -sTCP:LISTEN
 ```
 
 **Interpreting results:**
@@ -168,14 +181,17 @@ df -h ~
 ### Service won't start at all
 
 ```bash
-# Try manual start for better error output (cross-platform)
-cd ~/.openclaw && npx openclaw gateway start
-
 # Check Node.js is available
 node -v
 
-# Check openclaw is installed
+# Check openclaw is installed and find its path
+which openclaw
 openclaw --version
+
+# Try manual start for better error output (cross-platform)
+openclaw gateway start
+# If 'openclaw' not in PATH, use full path:
+# $(npm root -g)/openclaw/bin/openclaw.mjs gateway start
 ```
 
 ## 4. Log Diagnosis
@@ -363,6 +379,7 @@ cat > ~/Library/LaunchAgents/com.openclaw.gateway.plist << 'EOF'
 EOF
 
 # Replace HOMEDIR with actual home path (plist doesn't expand ~)
+# Note: sed -i '' is macOS syntax; on Linux this would be sed -i (without '')
 sed -i '' "s|HOMEDIR|$HOME|g" ~/Library/LaunchAgents/com.openclaw.gateway.plist
 ```
 
@@ -483,12 +500,12 @@ df -h ~
 
 # Linux-specific
 free -h
-ss -tlnp | grep 18789
+ss -tlnp | grep $PORT
 tailscale status 2>/dev/null
 
 # macOS-specific
 vm_stat | head -5
-lsof -iTCP:18789 -sTCP:LISTEN
+lsof -iTCP:$PORT -sTCP:LISTEN
 /Applications/Tailscale.app/Contents/MacOS/Tailscale status 2>/dev/null || tailscale status 2>/dev/null
 ```
 
@@ -668,11 +685,11 @@ tailscale status
 tailscale serve status
 
 # Verify the proxy target is reachable
-curl -s -o /dev/null -w "%{http_code}" http://localhost:18789/healthz || echo "Gateway not reachable on localhost"
+curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/healthz || echo "Gateway not reachable on localhost"
 
 # Common issues:
 # 1. Tailscale not running → systemctl start tailscaled (Linux) or open Tailscale app (macOS)
-# 2. Serve not configured → tailscale serve https / 18789
+# 2. Serve not configured → tailscale serve https / $PORT
 # 3. Gateway not listening → see §1 Status Check
 # 4. Funnel vs Serve confusion → Serve = tailnet only, Funnel = public internet
 ```
@@ -681,7 +698,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:18789/healthz || echo "G
 ```bash
 # Reset and reconfigure
 tailscale serve reset
-tailscale serve https / http://localhost:18789
+tailscale serve https / http://localhost:$PORT
 tailscale serve status
 ```
 
