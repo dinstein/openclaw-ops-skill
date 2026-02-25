@@ -11,21 +11,10 @@
 ## 架构
 
 ```mermaid
-graph TB
-    subgraph Server["🖥️ 服务器 / Mac"]
-        subgraph Main["主 OpenClaw Gateway"]
-            A1[Agents]
-            A2[Channels]
-            A3[Sessions]
-            A4[Cron Jobs]
-        end
-        subgraph Rescue["Rescue Agent<br/>Claude Code / 备用 OC / 任何 AI Agent"]
-            R1["🛠️ openclaw-ops 技能已安装"]
-        end
-        Rescue -- "🔧 诊断 & 修复" --> Main
-    end
-    Main -. "systemd / launchd" .-> Users["👥 用户通过 Discord / Telegram 等"]
-    You["👤 你通过 SSH / VS Code / tmux"] -- "主 Agent 挂了时连接" --> Rescue
+graph LR
+    You["👤 你"] -->|远程连接| Rescue["🛠️ Rescue Agent<br/>+ openclaw-ops 技能"]
+    Rescue -->|诊断 & 修复| Main["🦞 主 OpenClaw<br/>Gateway"]
+    Main -->|服务用户| Users["👥 Discord / Telegram 等"]
 ```
 
 **主 OpenClaw Gateway** — 你的主要 AI Agent 系统，处理日常操作：聊天频道、定时任务、会话等。

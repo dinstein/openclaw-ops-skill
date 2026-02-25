@@ -11,21 +11,10 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 ## Architecture
 
 ```mermaid
-graph TB
-    subgraph Server["🖥️ Server / Mac"]
-        subgraph Main["Main OpenClaw Gateway"]
-            A1[Agents]
-            A2[Channels]
-            A3[Sessions]
-            A4[Cron Jobs]
-        end
-        subgraph Rescue["Rescue Agent<br/>Claude Code / secondary OC / any AI agent"]
-            R1["🛠️ openclaw-ops skill installed"]
-        end
-        Rescue -- "🔧 diagnoses & fixes" --> Main
-    end
-    Main -. "systemd / launchd" .-> Users["👥 Users via Discord / Telegram / etc"]
-    You["👤 You via SSH / VS Code / tmux"] -- "connect when main is down" --> Rescue
+graph LR
+    You["👤 You"] -->|remote access| Rescue["🛠️ Rescue Agent<br/>+ openclaw-ops skill"]
+    Rescue -->|diagnoses & fixes| Main["🦞 Main OpenClaw<br/>Gateway"]
+    Main -->|serves users| Users["👥 Discord / Telegram / etc"]
 ```
 
 **Main OpenClaw Gateway** — Your primary AI agent system. Handles all day-to-day operations: chat channels, cron jobs, sessions, etc.
