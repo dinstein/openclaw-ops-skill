@@ -16,6 +16,16 @@
 clawhub install openclaw-ops
 ```
 
+### 在对话中让 Agent 安装
+
+直接在对话里告诉你的 Agent：
+
+```
+> 从 https://github.com/dinstein/openclaw-ops-skill 安装 openclaw-ops 技能
+```
+
+Agent 会自动下载 `SKILL.md` 并放到正确的技能目录。
+
 ### 手动安装
 
 将 `SKILL.md` 复制到你的 Agent 技能目录：

@@ -16,6 +16,16 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 clawhub install openclaw-ops
 ```
 
+### Ask your agent to install it
+
+Just tell your agent in a conversation:
+
+```
+> Install the openclaw-ops skill from https://github.com/dinstein/openclaw-ops-skill
+```
+
+The agent will download `SKILL.md` and place it in the correct skills directory automatically.
+
 ### Manual
 
 Copy `SKILL.md` into your agent's skills directory:
