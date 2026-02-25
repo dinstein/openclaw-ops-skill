@@ -108,7 +108,7 @@ tmux attach -t rescue
 
 Agent 会自动下载 `SKILL.md` 并放到正确的技能目录。
 
-### 通过 ClawHub
+### 通过 ClawHub（使用第二个 OpenClaw 作为 Rescue Agent 时）
 
 ```bash
 clawhub install openclaw-ops

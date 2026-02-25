@@ -108,7 +108,7 @@ Just tell your agent in a conversation:
 
 The agent will download `SKILL.md` and place it in the correct skills directory automatically.
 
-### From ClawHub
+### From ClawHub (when using a secondary OpenClaw as rescue agent)
 
 ```bash
 clawhub install openclaw-ops
