@@ -72,12 +72,11 @@ Rescue Agent: 运行 openclaw doctor → 报告状态、孤立文件数量、
 
 ### 方案 1：原生远程控制（⭐ 推荐）
 
-大多数编程 Agent 提供内置的远程访问功能。优先使用 — 体验最好，浏览器或手机直接操作。
+如果你的 Agent 支持原生远程访问，优先使用 — 体验最好，浏览器或手机直接操作。
 
-- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control)：从任何浏览器访问服务器上的 Claude Code
-- **Codex** — 查看对应的远程访问文档
+- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control)：从任何浏览器访问服务器上的 Claude Code，自带认证和会话保持
 
-原生方案自带认证、会话保持和 UI，开箱即用。
+目前只有 Claude Code 提供此功能。随着更多 Agent 支持原生远程访问，这将成为所有 Agent 的首选方案。
 
 ### 方案 2：远程 Agent 管理平台
 

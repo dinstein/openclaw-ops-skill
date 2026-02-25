@@ -72,12 +72,11 @@ When the main OpenClaw is down, you can't talk to it through Discord/Telegram. Y
 
 ### Option 1: Native Remote Control (⭐ Recommended)
 
-Most coding agents offer built-in remote access. Use this when available — it's the most seamless experience, with full agent capabilities from your browser or mobile device.
+If your agent supports native remote access, use it — the most seamless experience with full agent capabilities from your browser or mobile device.
 
-- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control): access your server-side Claude Code from any browser
-- **Codex** — Check your provider's remote access documentation
+- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control): access your server-side Claude Code from any browser, with built-in auth and session persistence
 
-These native solutions handle auth, session persistence, and UI out of the box.
+Currently only Claude Code offers this. As more agents add native remote access, this will be the preferred approach for all.
 
 ### Option 2: Remote Agent Platforms
 
