@@ -590,6 +590,179 @@ sleep 3
 openclaw status
 ```
 
+## 9. Troubleshooting Quick Index
+
+| Symptom | Start here |
+|---------|-----------|
+| Gateway won't start | §3 → §4 → §7 |
+| Channel disconnected (Discord/Telegram) | §2 (config) → §4 (logs) |
+| Config broken after edit | §2 (repair + schema) |
+| Disk filling up | §9a Session Cleanup |
+| After upgrade something broke | §6 (rollback) → §9b Doctor Diff |
+| Tailscale not proxying | §9c Tailscale Serve |
+| Need periodic health monitoring | §9d Health Check Cron |
+
+### 9a. Session & Transcript Cleanup
+
+`openclaw doctor` may report orphan transcripts consuming disk:
+
+```bash
+# Check disk usage of session data
+du -sh ~/.openclaw/agents/*/sessions/
+
+# Doctor reports orphans — auto-fix them
+openclaw doctor --fix
+
+# Manual cleanup: remove transcripts older than 30 days
+find ~/.openclaw/agents/*/sessions/ -name "*.jsonl" -mtime +30 -exec ls -lh {} \;
+# Review the list, then delete if safe:
+find ~/.openclaw/agents/*/sessions/ -name "*.jsonl" -mtime +30 -delete
+```
+
+**Note:** `openclaw doctor --fix` only removes files it confirms are orphaned (not referenced by `sessions.json`). It's safe to run.
+
+For multi-agent setups, check each agent directory:
+```bash
+for agent_dir in ~/.openclaw/agents/*/; do
+    agent=$(basename "$agent_dir")
+    size=$(du -sh "$agent_dir/sessions/" 2>/dev/null | cut -f1)
+    count=$(find "$agent_dir/sessions/" -name "*.jsonl" 2>/dev/null | wc -l)
+    echo "$agent: $size ($count transcripts)"
+done
+```
+
+### 9b. Doctor Diff (Before/After Upgrade)
+
+Capture `openclaw doctor` output before and after upgrades to spot regressions:
+
+```bash
+# Before upgrade — save baseline
+openclaw doctor 2>&1 | tee /tmp/doctor-before.txt
+
+# ... perform upgrade (§6) ...
+
+# After upgrade — compare
+openclaw doctor 2>&1 | tee /tmp/doctor-after.txt
+diff /tmp/doctor-before.txt /tmp/doctor-after.txt
+```
+
+Look for:
+- New warnings or errors that didn't exist before
+- Changed plugin/skill counts (something got disabled?)
+- New "legacy state" detections
+- Channel connectivity changes
+
+### 9c. Tailscale Serve Troubleshooting
+
+If OpenClaw uses Tailscale Serve as a reverse proxy (HTTPS → localhost):
+
+```bash
+# Check Tailscale status
+tailscale status
+
+# Check what Serve is proxying
+tailscale serve status
+
+# Verify the proxy target is reachable
+curl -s -o /dev/null -w "%{http_code}" http://localhost:18789/healthz || echo "Gateway not reachable on localhost"
+
+# Common issues:
+# 1. Tailscale not running → systemctl start tailscaled (Linux) or open Tailscale app (macOS)
+# 2. Serve not configured → tailscale serve https / 18789
+# 3. Gateway not listening → see §1 Status Check
+# 4. Funnel vs Serve confusion → Serve = tailnet only, Funnel = public internet
+```
+
+**Reconfigure Tailscale Serve:**
+```bash
+# Reset and reconfigure
+tailscale serve reset
+tailscale serve https / http://localhost:18789
+tailscale serve status
+```
+
+### 9d. Health Check Cron Template
+
+Set up periodic health monitoring using OpenClaw's cron system. Use this from your main OpenClaw agent (not the rescue agent):
+
+**Via the `cron` tool (from inside OpenClaw):**
+```json
+{
+  "name": "openclaw-healthcheck",
+  "schedule": { "kind": "cron", "expr": "0 */6 * * *", "tz": "UTC" },
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Run openclaw doctor and openclaw status. If any issues found, summarize them. If all healthy, reply with a one-line status.",
+    "timeoutSeconds": 120
+  },
+  "sessionTarget": "isolated",
+  "delivery": { "mode": "announce" }
+}
+```
+
+This runs every 6 hours in an isolated session and announces results to the chat.
+
+**From the rescue agent (via CLI):**
+```bash
+# Simple crontab-based check (add via crontab -e)
+# Runs every 6 hours, logs output
+0 */6 * * * /usr/local/bin/openclaw doctor --non-interactive >> ~/.openclaw/logs/doctor-cron.log 2>&1
+```
+
+## 10. `openclaw doctor` Reference
+
+### Flags
+
+| Flag | Effect |
+|------|--------|
+| (none) | Interactive health check with prompts |
+| `--fix` | Apply recommended repairs (safe migrations, orphan cleanup) |
+| `--force` | Aggressive repairs — may overwrite custom service config |
+| `--deep` | Scan system services for extra gateway installs |
+| `--non-interactive` | No prompts, safe migrations only (good for cron) |
+| `--generate-gateway-token` | Generate and configure a gateway token |
+| `--no-workspace-suggestions` | Skip workspace memory system suggestions |
+
+### What `--fix` repairs
+
+- Canonicalizes legacy session keys
+- Removes orphan transcript files (not referenced by `sessions.json`)
+- Cleans stale session lock files (from crashed processes)
+- Applies safe state migrations
+
+**`--fix` does NOT:**
+- Modify `openclaw.json` config
+- Change service files (unless `--force`)
+- Delete workspace files
+
+### Config Schema Validation
+
+Beyond JSON syntax, validate config structure against OpenClaw's schema:
+
+```bash
+# Get current config
+openclaw config get
+
+# Check specific values
+openclaw config get gateway.bind
+openclaw config get channels.discord
+
+# Set a value
+openclaw config set gateway.bind loopback
+
+# The gateway tool also validates schema on config.apply
+```
+
+### `openclaw gateway` vs `openclaw status` vs `openclaw doctor`
+
+| Command | Purpose |
+|---------|---------|
+| `openclaw status` | Quick status: is gateway running, what version, basic info |
+| `openclaw doctor` | Deep health check: state integrity, channels, plugins, skills, warnings |
+| `openclaw doctor --fix` | Health check + auto-repair safe issues |
+| `openclaw gateway status` | Gateway daemon status (start/stop/restart controls) |
+| `openclaw gateway start` | Start gateway in foreground (useful for debugging) |
+
 ## Safety Rules
 
 1. **Always check logs before changing anything** — understand the problem first
