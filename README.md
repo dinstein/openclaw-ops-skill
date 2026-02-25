@@ -63,58 +63,48 @@ channel connectivity, disk usage → offers to fix any issues found
 
 When the main OpenClaw is down, you can't talk to it through Discord/Telegram. You need an alternative way to reach the rescue agent on the server.
 
-### Option 1: Claude Code via SSH (Recommended)
+### Option 1: Native Remote Control (⭐ Recommended)
 
-SSH into the server and run Claude Code directly:
+Most coding agents offer built-in remote access. Use this when available — it's the most seamless experience, with full agent capabilities from your browser or mobile device.
+
+- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control): access your server-side Claude Code from any browser
+- **Codex** — Check your provider's remote access documentation
+
+These native solutions handle auth, session persistence, and UI out of the box.
+
+### Option 2: Remote Agent Platforms
+
+Third-party platforms that let you manage and interact with coding agents on remote machines:
+
+- [Hapi](https://hapi.com) — Remote agent management platform
+- Similar products that support remote shell-capable agent access
+
+These are good when your agent doesn't have native remote control, or when you want a unified dashboard for multiple agents.
+
+### Option 3: SSH + Agent CLI
+
+SSH into the server and run the agent directly in the terminal:
 
 ```bash
 ssh user@your-server
-claude  # starts Claude Code with the skill available
+claude  # or codex, or any agent CLI
 ```
 
-For mobile access, use any SSH client app (Termius, Blink, etc.).
-
-### Option 2: Claude Code Remote (VS Code)
-
-Use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with VS Code Remote SSH:
-
-1. VS Code → Remote-SSH → connect to your server
-2. Open terminal → `claude`
-3. The rescue agent has shell access and the skill
-
-### Option 3: Secondary OpenClaw Instance
-
-Run a second OpenClaw instance as the rescue agent with a different channel (e.g., Telegram if main uses Discord):
+**Tips for mobile:**
+- Use SSH client apps (Termius, Blink, etc.) from your phone
+- Use tmux to keep sessions alive between connections:
 
 ```bash
-# Install as a separate service with different config
-openclaw daemon install --name openclaw-rescue
-```
-
-This way if Discord is down or the main agent is unresponsive, you reach the rescue agent via Telegram.
-
-### Option 4: Hoppscotch / API Client
-
-If the rescue agent exposes an API endpoint, connect via any HTTP client from your phone:
-
-```
-POST https://your-server:port/api/chat
-{ "message": "Check OpenClaw status" }
-```
-
-### Option 5: tmux + SSH
-
-Leave a tmux session running with Claude Code:
-
-```bash
-# On the server (once)
+# On the server (one-time setup)
 tmux new -s rescue
 claude
 
-# Later, from anywhere via SSH
+# Later, from anywhere
 ssh user@your-server
 tmux attach -t rescue
 ```
+
+- VS Code Remote SSH also works well from a laptop
 
 ## Install
 

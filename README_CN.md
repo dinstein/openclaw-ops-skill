@@ -63,48 +63,48 @@ Rescue Agent: 运行 openclaw doctor → 报告状态、孤立文件数量、
 
 主 OpenClaw 挂了之后，你无法通过 Discord/Telegram 和它对话。你需要其他方式连接服务器上的 Rescue Agent。
 
-### 方案 1：通过 SSH 连接 Claude Code（推荐）
+### 方案 1：原生远程控制（⭐ 推荐）
 
-SSH 登录服务器，直接运行 Claude Code：
+大多数编程 Agent 提供内置的远程访问功能。优先使用 — 体验最好，浏览器或手机直接操作。
+
+- **Claude Code** — [Remote Control](https://code.claude.com/docs/en/remote-control)：从任何浏览器访问服务器上的 Claude Code
+- **Codex** — 查看对应的远程访问文档
+
+原生方案自带认证、会话保持和 UI，开箱即用。
+
+### 方案 2：远程 Agent 管理平台
+
+第三方平台，支持远程管理和操控服务器上的 Agent：
+
+- [Hapi](https://hapi.com) — 远程 Agent 管理平台
+- 类似支持远程 shell Agent 访问的产品
+
+适合 Agent 没有原生远程控制、或者需要统一管理多个 Agent 的场景。
+
+### 方案 3：SSH + Agent CLI
+
+SSH 登录服务器，直接在终端运行 Agent：
 
 ```bash
 ssh user@your-server
-claude  # 启动 Claude Code，技能自动可用
+claude  # 或 codex，或任何 Agent CLI
 ```
 
-移动端可以用任何 SSH 客户端（Termius、Blink 等）。
-
-### 方案 2：Claude Code Remote（VS Code）
-
-使用 VS Code Remote SSH：
-
-1. VS Code → Remote-SSH → 连接到服务器
-2. 打开终端 → `claude`
-3. Rescue Agent 拥有 shell 访问和本技能
-
-### 方案 3：备用 OpenClaw 实例
-
-运行第二个 OpenClaw 实例作为 Rescue Agent，使用不同的频道（比如主 Agent 用 Discord，Rescue 用 Telegram）：
+**移动端技巧：**
+- 使用 SSH 客户端 App（Termius、Blink 等）
+- 用 tmux 保持会话：
 
 ```bash
-openclaw daemon install --name openclaw-rescue
-```
-
-这样主 Agent 无响应时，你通过 Telegram 联系 Rescue Agent。
-
-### 方案 4：tmux + SSH
-
-在服务器上保持一个 tmux 会话运行 Claude Code：
-
-```bash
-# 在服务器上（一次性设置）
+# 服务器上（一次性设置）
 tmux new -s rescue
 claude
 
-# 之后从任何地方通过 SSH 连接
+# 之后从任何地方
 ssh user@your-server
 tmux attach -t rescue
 ```
+
+- VS Code Remote SSH 也很好用（笔记本场景）
 
 ## 安装
 
