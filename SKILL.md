@@ -11,12 +11,14 @@ You are a rescue agent (Claude Code or secondary OpenClaw instance) operating on
 
 ## Platform Detection
 
-Detect the platform first and use the appropriate commands throughout:
+Detect the platform first — commands differ between Linux (systemd) and macOS (launchd):
 
 ```bash
 OS=$(uname -s)  # "Linux" or "Darwin"
 echo "Platform: $OS"
 ```
+
+Use the platform-appropriate commands throughout this guide. Both are provided for each module.
 
 ## 1. Status Check
 
@@ -772,6 +774,29 @@ openclaw config set gateway.bind loopback
 5. **Never delete workspace files** — use `trash` if you must remove something
 6. **Always verify after restart** — status + logs, don't assume it worked
 7. **Destructive operations require confirmation** — ask the user before wiping data
+
+## Common Interaction Patterns
+
+When a user asks for help, follow these patterns:
+
+**"Is my OpenClaw OK?"** → Run §1 Status Check → report results, offer to fix issues
+
+**"It's not working"** → Run §1 → if service down, §4 Log Diagnosis → §3 Restart after fixing root cause
+
+**"I changed the config and broke it"** → §2 Config Repair → validate → restart if needed
+
+**"Set it up from scratch"** → Detect platform → §5 Service Initial Setup → §1 verify
+
+**"Update it"** → §9b Doctor Diff (baseline) → §6 Update → §9b (compare) → verify
+
+**"Clean up disk space"** → §9a Session Cleanup → report freed space
+
+**General debugging flow:**
+1. `openclaw doctor` — get the big picture
+2. Logs — find the specific error
+3. Fix — address root cause
+4. Restart — bring service back
+5. Verify — confirm it's healthy
 
 ## File Layout Reference
 
