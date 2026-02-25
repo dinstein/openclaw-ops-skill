@@ -10,12 +10,6 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 
 ## Install
 
-### From ClawHub
-
-```bash
-clawhub install openclaw-ops
-```
-
 ### Ask your agent to install it
 
 Just tell your agent in a conversation:
@@ -25,6 +19,12 @@ Just tell your agent in a conversation:
 ```
 
 The agent will download `SKILL.md` and place it in the correct skills directory automatically.
+
+### From ClawHub
+
+```bash
+clawhub install openclaw-ops
+```
 
 ### Manual
 

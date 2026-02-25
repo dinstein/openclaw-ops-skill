@@ -10,12 +10,6 @@
 
 ## 安装
 
-### 通过 ClawHub
-
-```bash
-clawhub install openclaw-ops
-```
-
 ### 在对话中让 Agent 安装
 
 直接在对话里告诉你的 Agent：
@@ -25,6 +19,12 @@ clawhub install openclaw-ops
 ```
 
 Agent 会自动下载 `SKILL.md` 并放到正确的技能目录。
+
+### 通过 ClawHub
+
+```bash
+clawhub install openclaw-ops
+```
 
 ### 手动安装
 
