@@ -6,6 +6,32 @@
 
 支持 **Linux (systemd)** 和 **macOS (launchd)**。
 
+[English](README.md) | [中文](README_CN.md)
+
+## 安装
+
+### 通过 ClawHub
+
+```bash
+clawhub install openclaw-ops
+```
+
+### 手动安装
+
+将 `SKILL.md` 复制到你的 Agent 技能目录：
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills/openclaw-ops
+cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
+
+# OpenClaw
+mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
+cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
+
+# 其他 Agent — 放到你的 Agent 读取技能文件的目录
+```
+
 ## 功能覆盖
 
 | 模块 | 说明 |
@@ -95,30 +121,6 @@ Agent 回复: "Tailscale Serve 没有配置。需要我设置 HTTPS 代理到 lo
 
 Agent 创建 OpenClaw cron job 或系统 crontab，定期运行
 openclaw doctor 并在发现问题时报告。
-```
-
-## 安装
-
-### 通过 ClawHub
-
-```bash
-clawhub install openclaw-ops
-```
-
-### 手动安装
-
-将 `SKILL.md` 复制到你的 Agent 技能目录：
-
-```bash
-# Claude Code
-mkdir -p ~/.claude/skills/openclaw-ops
-cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
-
-# OpenClaw
-mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
-cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
-
-# 其他 Agent — 放到你的 Agent 读取技能文件的目录
 ```
 
 ## 工作原理

@@ -8,6 +8,30 @@ Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw,
 
 Supports both **Linux (systemd)** and **macOS (launchd)**.
 
+## Install
+
+### From ClawHub
+
+```bash
+clawhub install openclaw-ops
+```
+
+### Manual
+
+Copy `SKILL.md` into your agent's skills directory:
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills/openclaw-ops
+cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
+
+# OpenClaw
+mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
+cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
+
+# Other agents — place in whatever skills directory your agent reads from
+```
+
 ## What it covers
 
 | Module | Description |
@@ -25,7 +49,7 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 
 ## Usage Examples
 
-Once installed, you can ask your Claude Code (or other AI agent) to perform ops tasks in natural language:
+Once installed, you can ask your AI agent to perform ops tasks in natural language:
 
 ### Quick health check
 
@@ -97,30 +121,6 @@ Agent reports: "Tailscale Serve isn't configured. Want me to set it up to proxy 
 
 Agent creates an OpenClaw cron job or system crontab entry that runs
 openclaw doctor periodically and reports issues.
-```
-
-## Install
-
-### From ClawHub
-
-```bash
-clawhub install openclaw-ops
-```
-
-### Manual
-
-Copy `SKILL.md` into your agent's skills directory:
-
-```bash
-# Claude Code
-mkdir -p ~/.claude/skills/openclaw-ops
-cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
-
-# OpenClaw
-mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
-cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
-
-# Other agents — place in whatever skills directory your agent reads from
 ```
 
 ## How it works
