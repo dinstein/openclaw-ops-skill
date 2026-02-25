@@ -8,6 +8,40 @@
 
 支持 **Linux (systemd)** 和 **macOS (launchd)**。
 
+## 安装
+
+### 在对话中让 Agent 安装
+
+直接在对话里告诉你的 Agent：
+
+```
+> 从 https://github.com/dinstein/openclaw-ops-skill 安装 openclaw-ops 技能
+```
+
+Agent 会自动下载 `SKILL.md` 并放到正确的技能目录。
+
+### 通过 ClawHub（使用第二个 OpenClaw 作为 Rescue Agent 时）
+
+```bash
+clawhub install openclaw-ops
+```
+
+### 手动安装
+
+将 `SKILL.md` 复制到你的 Agent 技能目录：
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills/openclaw-ops
+cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
+
+# OpenClaw
+mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
+cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
+
+# 其他 Agent — 放到你的 Agent 读取技能文件的目录
+```
+
 ## 架构
 
 ```mermaid
@@ -103,40 +137,6 @@ tmux attach -t rescue
 ```
 
 - VS Code Remote SSH 也很好用（笔记本场景）
-
-## 安装
-
-### 在对话中让 Agent 安装
-
-直接在对话里告诉你的 Agent：
-
-```
-> 从 https://github.com/dinstein/openclaw-ops-skill 安装 openclaw-ops 技能
-```
-
-Agent 会自动下载 `SKILL.md` 并放到正确的技能目录。
-
-### 通过 ClawHub（使用第二个 OpenClaw 作为 Rescue Agent 时）
-
-```bash
-clawhub install openclaw-ops
-```
-
-### 手动安装
-
-将 `SKILL.md` 复制到你的 Agent 技能目录：
-
-```bash
-# Claude Code
-mkdir -p ~/.claude/skills/openclaw-ops
-cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
-
-# OpenClaw
-mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
-cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
-
-# 其他 Agent — 放到你的 Agent 读取技能文件的目录
-```
 
 ## 功能覆盖
 

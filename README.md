@@ -8,6 +8,40 @@ Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw,
 
 Supports both **Linux (systemd)** and **macOS (launchd)**.
 
+## Install
+
+### Ask your agent to install it
+
+Just tell your agent in a conversation:
+
+```
+> Install the openclaw-ops skill from https://github.com/dinstein/openclaw-ops-skill
+```
+
+The agent will download `SKILL.md` and place it in the correct skills directory automatically.
+
+### From ClawHub (when using a secondary OpenClaw as rescue agent)
+
+```bash
+clawhub install openclaw-ops
+```
+
+### Manual
+
+Copy `SKILL.md` into your agent's skills directory:
+
+```bash
+# Claude Code
+mkdir -p ~/.claude/skills/openclaw-ops
+cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
+
+# OpenClaw
+mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
+cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
+
+# Other agents — place in whatever skills directory your agent reads from
+```
+
 ## Architecture
 
 ```mermaid
@@ -103,40 +137,6 @@ tmux attach -t rescue
 ```
 
 - VS Code Remote SSH also works well from a laptop
-
-## Install
-
-### Ask your agent to install it
-
-Just tell your agent in a conversation:
-
-```
-> Install the openclaw-ops skill from https://github.com/dinstein/openclaw-ops-skill
-```
-
-The agent will download `SKILL.md` and place it in the correct skills directory automatically.
-
-### From ClawHub (when using a secondary OpenClaw as rescue agent)
-
-```bash
-clawhub install openclaw-ops
-```
-
-### Manual
-
-Copy `SKILL.md` into your agent's skills directory:
-
-```bash
-# Claude Code
-mkdir -p ~/.claude/skills/openclaw-ops
-cp SKILL.md ~/.claude/skills/openclaw-ops/SKILL.md
-
-# OpenClaw
-mkdir -p ~/.openclaw/workspace/skills/openclaw-ops
-cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
-
-# Other agents — place in whatever skills directory your agent reads from
-```
 
 ## What it covers
 
