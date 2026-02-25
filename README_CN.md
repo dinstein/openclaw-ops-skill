@@ -4,7 +4,7 @@
 
 一个教 AI Agent 如何运维 [OpenClaw](https://openclaw.ai) Gateway 的技能。
 
-适用于**任何有 shell 访问权限的 Agent** — Claude Code、Codex、OpenClaw、Pi 或任何运行在 OpenClaw Gateway 同一台机器上的 AI 编程代理。
+适用于**任何有 shell 访问权限的 Agent** — Claude Code、Codex、OpenClaw、Pi 或任何运行在 OpenClaw Gateway 同一台机器上的 AI Agent。
 
 支持 **Linux (systemd)** 和 **macOS (launchd)**。
 
@@ -35,7 +35,7 @@
 
 **主 OpenClaw Gateway** — 你的主要 AI Agent 系统，处理日常操作：聊天频道、定时任务、会话等。
 
-**Rescue Agent** — 一个独立的 Agent（Claude Code、备用 OpenClaw 实例或其他 AI 编程代理），安装了本技能。和主 Gateway 运行在同一台机器上。它的唯一职责：主 Gateway 出问题时修复它，以及执行运维健康检查。
+**Rescue Agent** — 一个独立的 Agent（Claude Code、备用 OpenClaw 实例或其他有 shell 访问权限的 AI Agent），安装了本技能。和主 Gateway 运行在同一台机器上。它的唯一职责：主 Gateway 出问题时修复它，以及执行运维健康检查。
 
 **本技能** — 教会 Rescue Agent 该跑什么命令、如何解读输出、按什么步骤诊断和修复。
 

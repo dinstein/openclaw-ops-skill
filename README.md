@@ -4,7 +4,7 @@
 
 A skill that teaches any AI agent how to operate and maintain an [OpenClaw](https://openclaw.ai) Gateway running as a persistent service.
 
-Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw, Pi, or any AI coding agent running on the same machine as the OpenClaw Gateway.
+Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw, Pi, or any AI agent with shell access running on the same machine as the OpenClaw Gateway.
 
 Supports both **Linux (systemd)** and **macOS (launchd)**.
 
@@ -36,7 +36,7 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 
 **Main OpenClaw Gateway** — Your primary AI agent system. Handles all day-to-day operations: chat channels, cron jobs, sessions, etc.
 
-**Rescue Agent** — A separate agent (Claude Code, secondary OpenClaw instance, or any AI coding agent) with this skill installed. Lives on the same machine. Its sole purpose: fix the main gateway when it breaks, and perform operational health checks.
+**Rescue Agent** — A separate agent (Claude Code, secondary OpenClaw instance, or any AI agent with shell access) with this skill installed. Lives on the same machine. Its sole purpose: fix the main gateway when it breaks, and perform operational health checks.
 
 **This skill** — Teaches the rescue agent what commands to run, how to interpret output, and what steps to follow for diagnosis and repair.
 
