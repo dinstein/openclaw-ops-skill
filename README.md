@@ -73,8 +73,8 @@ Currently only Claude Code offers this. As more agents add native remote access,
 
 Third-party platforms that let you manage and interact with coding agents on remote machines:
 
-- [Happy](https://github.com/slopus/happy) — Open-source web UI for remote Claude Code access
-- [Hapi](https://github.com/tiann/hapi) — Remote agent management platform
+- [Happy](https://github.com/slopus/happy) — Mobile & web client for Claude Code and Codex with push notifications, device switching, and E2E encryption
+- [Hapi](https://github.com/tiann/hapi) — Local-first remote control for Claude Code / Codex / Gemini / OpenCode via Web, PWA, or Telegram Mini App
 - Similar products that support remote shell-capable agent access
 
 These are good when your agent doesn't have native remote control, or when you want a unified dashboard for multiple agents.

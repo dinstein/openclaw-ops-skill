@@ -73,8 +73,8 @@ Rescue Agent: 运行 openclaw doctor → 报告状态、孤立文件数量、
 
 第三方平台，支持远程管理和操控服务器上的 Agent：
 
-- [Happy](https://github.com/slopus/happy) — 开源 Web UI，远程访问 Claude Code
-- [Hapi](https://github.com/tiann/hapi) — 远程 Agent 管理平台
+- [Happy](https://github.com/slopus/happy) — Claude Code 和 Codex 的移动端 & Web 客户端，支持推送通知、设备切换和端到端加密
+- [Hapi](https://github.com/tiann/hapi) — 本地优先的远程控制，支持 Claude Code / Codex / Gemini / OpenCode，通过 Web、PWA 或 Telegram Mini App 访问
 - 类似支持远程 shell Agent 访问的产品
 
 适合 Agent 没有原生远程控制、或者需要统一管理多个 Agent 的场景。
