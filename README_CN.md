@@ -1,4 +1,6 @@
-# openclaw-ops `v1.0.0`
+# openclaw-ops `v1.1.0`
+
+[English](README.md) | [中文](README_CN.md)
 
 一个教 AI Agent 如何运维 [OpenClaw](https://openclaw.ai) Gateway 的技能。
 
@@ -6,7 +8,108 @@
 
 支持 **Linux (systemd)** 和 **macOS (launchd)**。
 
-[English](README.md) | [中文](README_CN.md)
+## 架构
+
+```
+┌─────────────────────────────────────────────────┐
+│                 服务器 / Mac                      │
+│                                                  │
+│  ┌──────────────┐       ┌────────────────────┐  │
+│  │ 主 OpenClaw   │◄─────│  Rescue Agent      │  │
+│  │   Gateway     │ 修复 │  (Claude Code /    │  │
+│  │              │       │   备用 OC /        │  │
+│  │  • Agents    │       │   任何 AI Agent)   │  │
+│  │  • Channels  │       │                    │  │
+│  │  • Sessions  │       │  + openclaw-ops    │  │
+│  │  • Cron jobs │       │    技能已安装      │  │
+│  └──────┬───────┘       └────────┬───────────┘  │
+│         │                        │               │
+│         │ systemd / launchd      │ shell 访问    │
+│         │                        │               │
+└─────────┼────────────────────────┼───────────────┘
+          │                        │
+          ▼                        ▼
+   通过 Discord/Telegram          当主 Agent 挂了
+   等渠道服务用户                  你连接 Rescue Agent
+```
+
+**主 OpenClaw Gateway** — 你的主要 AI Agent 系统，处理日常操作：聊天频道、定时任务、会话等。
+
+**Rescue Agent** — 一个独立的 Agent（Claude Code、备用 OpenClaw 实例或其他 AI 编程代理），安装了本技能。和主 Gateway 运行在同一台机器上。它的唯一职责：主 Gateway 出问题时修复它，以及执行运维健康检查。
+
+**本技能** — 教会 Rescue Agent 该跑什么命令、如何解读输出、按什么步骤诊断和修复。
+
+## 两个核心场景
+
+### 🔴 救援：主 Gateway 挂了
+
+主 OpenClaw 崩溃、配置损坏或无法启动。你连接到 Rescue Agent 让它修复。
+
+```
+你: "OpenClaw 挂了，帮我看看"
+
+Rescue Agent: 检查 systemctl 状态 → 读取崩溃日志 → 发现 ENOMEM →
+回复 "内存不足，Node 进程被杀。内存使用率 94%。
+需要我释放一些内存然后重启吗？"
+```
+
+### 🟢 健康检查：主 Gateway 运行中
+
+主 OpenClaw 正常运行，你想确认运行状态、升级或清理。
+
+```
+你: "检查一下 OpenClaw 的运行状况"
+
+Rescue Agent: 运行 openclaw doctor → 报告状态、孤立文件数量、
+频道连接情况、磁盘使用 → 提供修复建议
+```
+
+## 如何远程连接 Rescue Agent
+
+主 OpenClaw 挂了之后，你无法通过 Discord/Telegram 和它对话。你需要其他方式连接服务器上的 Rescue Agent。
+
+### 方案 1：通过 SSH 连接 Claude Code（推荐）
+
+SSH 登录服务器，直接运行 Claude Code：
+
+```bash
+ssh user@your-server
+claude  # 启动 Claude Code，技能自动可用
+```
+
+移动端可以用任何 SSH 客户端（Termius、Blink 等）。
+
+### 方案 2：Claude Code Remote（VS Code）
+
+使用 VS Code Remote SSH：
+
+1. VS Code → Remote-SSH → 连接到服务器
+2. 打开终端 → `claude`
+3. Rescue Agent 拥有 shell 访问和本技能
+
+### 方案 3：备用 OpenClaw 实例
+
+运行第二个 OpenClaw 实例作为 Rescue Agent，使用不同的频道（比如主 Agent 用 Discord，Rescue 用 Telegram）：
+
+```bash
+openclaw daemon install --name openclaw-rescue
+```
+
+这样主 Agent 无响应时，你通过 Telegram 联系 Rescue Agent。
+
+### 方案 4：tmux + SSH
+
+在服务器上保持一个 tmux 会话运行 Claude Code：
+
+```bash
+# 在服务器上（一次性设置）
+tmux new -s rescue
+claude
+
+# 之后从任何地方通过 SSH 连接
+ssh user@your-server
+tmux attach -t rescue
+```
 
 ## 安装
 
@@ -44,107 +147,28 @@ cp SKILL.md ~/.openclaw/workspace/skills/openclaw-ops/SKILL.md
 
 ## 功能覆盖
 
-| 模块 | 说明 |
-|------|------|
-| **状态检查** | `openclaw doctor`、服务状态、端口、进程 |
-| **配置修复** | JSON 语法修复、常见配置错误、Schema 校验 |
-| **重启与恢复** | 崩溃诊断、安全重启、根因分析 |
-| **日志诊断** | journalctl / 日志文件模式匹配、常见错误识别 |
-| **服务初始化** | 从零配置 systemd / launchd 常驻服务 |
-| **更新升级** | 版本检查、升级、回滚、升级前后对比 |
-| **环境检查** | Node.js、依赖完整性、端口冲突、Tailscale |
-| **备份恢复** | 关键文件备份与恢复流程 |
-| **会话清理** | 孤立 transcript 清理、磁盘管理 |
-| **定时健康检查** | 自动化监控 cron 模板 |
-
-## 使用示例
-
-安装后，你可以用自然语言让 Agent 执行运维任务：
-
-### 快速健康检查
-
-```
-> 检查一下 OpenClaw 是否正常
-
-Agent 执行: openclaw doctor, systemctl status, 端口检查
-Agent 回复: "Gateway 运行中，所有频道已连接，发现 3 个孤立 transcript — 需要我清理吗？"
-```
-
-### 诊断崩溃
-
-```
-> OpenClaw 没响应了，帮我看看怎么回事
-
-Agent 执行: systemctl status（发现 failed），检查 journalctl 日志
-Agent 回复: "Gateway 15 分钟前因 ENOMEM 崩溃，服务器内存使用率 94%。我可以在释放内存后重启 — 需要我检查是什么在占用内存吗？"
-```
-
-### 修复配置
-
-```
-> 我改了 openclaw.json 之后启动不了了
-
-Agent 执行: JSON 校验（发现第 42 行多了个逗号），备份当前文件，修复语法
-Agent 回复: "第 42 行有个多余的逗号，已修复并通过校验。需要我重启 Gateway 吗？"
-```
-
-### 新机器部署
-
-```
-> 在这台机器上把 OpenClaw 配置成常驻服务
-
-Agent 检测操作系统（Linux/macOS），创建服务文件（systemd unit 或 launchd plist），
-配置环境变量文件，启用自动启动，启动服务，验证健康状态。
-```
-
-### 安全升级
-
-```
-> 升级 OpenClaw 到最新版本
-
-Agent 检查当前与最新版本，备份配置，执行 npm update，
-重启服务，对比升级前后 doctor 输出，报告新增警告。
-```
-
-### 备份
-
-```
-> 在改动之前帮我备份 OpenClaw 配置
-
-Agent 创建带时间戳的备份，包含 openclaw.json、env、agents/、devices/、
-workspace/ 和服务配置。报告备份位置。
-```
-
-### Tailscale 代理问题
-
-```
-> 通过 Tailscale 访问不了 Dashboard
-
-Agent 检查: tailscale status, tailscale serve status, localhost 连通性
-Agent 回复: "Tailscale Serve 没有配置。需要我设置 HTTPS 代理到 localhost:18789 吗？"
-```
-
-### 定时监控
-
-```
-> 设置每 6 小时自动健康检查
-
-Agent 创建 OpenClaw cron job 或系统 crontab，定期运行
-openclaw doctor 并在发现问题时报告。
-```
+| 模块 | 场景 | 说明 |
+|------|------|------|
+| 崩溃诊断 | 🔴 救援 | 读取日志、定位根因 |
+| 配置修复 | 🔴 救援 | JSON 修复、Schema 校验、常见错误 |
+| 服务重启 | 🔴 救援 | 修复根因后安全重启 |
+| 资源检查 | 🔴 救援 | 磁盘、内存、Node.js、依赖 |
+| 健康检查 | 🟢 运维 | `openclaw doctor`、服务状态 |
+| 更新升级 | 🟢 运维 | 版本检查、安全升级、回滚 |
+| 磁盘清理 | 🟢 运维 | 孤立 transcript、会话管理 |
+| 备份 | 🟢 运维 | 配置、agents、workspace 备份 |
+| Tailscale 检查 | 🟢 运维 | 反向代理验证 |
 
 ## 工作原理
 
 这是一个**纯文档技能** — 无脚本、无外部依赖、无框架绑定。安装到任何能读取 Markdown 并执行 shell 命令的 Agent 中即可。它教会 Agent：
 
-1. **检查什么** — 每种场景对应的正确命令和文件
+1. **检查什么** — 每种场景对应的正确命令
 2. **如何解读** — 输出含义和常见错误模式
 3. **怎么修复** — 带安全护栏的逐步修复流程
 4. **如何验证** — 每个操作后的确认步骤
 
 ## 安全规则
-
-技能内置以下安全规则：
 
 - 修改前必须先查日志
 - 编辑配置前必须备份
