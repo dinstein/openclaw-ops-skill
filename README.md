@@ -10,28 +10,22 @@ Supports both **Linux (systemd)** and **macOS (launchd)**.
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────┐
-│                   Server / Mac                   │
-│                                                  │
-│  ┌──────────────┐       ┌────────────────────┐  │
-│  │ Main OpenClaw │◄─────│  Rescue Agent      │  │
-│  │   Gateway     │ fixes│  (Claude Code /    │  │
-│  │              │       │   secondary OC /   │  │
-│  │  • Agents    │       │   any AI agent)    │  │
-│  │  • Channels  │       │                    │  │
-│  │  • Sessions  │       │  + openclaw-ops    │  │
-│  │  • Cron jobs │       │    skill installed │  │
-│  └──────┬───────┘       └────────┬───────────┘  │
-│         │                        │               │
-│         │ systemd / launchd      │ shell access  │
-│         │                        │               │
-└─────────┼────────────────────────┼───────────────┘
-          │                        │
-          ▼                        ▼
-   Serves users via           You connect to
-   Discord/Telegram/etc       rescue agent when
-                              main agent is down
+```mermaid
+graph TB
+    subgraph Server["🖥️ Server / Mac"]
+        subgraph Main["Main OpenClaw Gateway"]
+            A1[Agents]
+            A2[Channels]
+            A3[Sessions]
+            A4[Cron Jobs]
+        end
+        subgraph Rescue["Rescue Agent<br/>Claude Code / secondary OC / any AI agent"]
+            R1["🛠️ openclaw-ops skill installed"]
+        end
+        Rescue -- "🔧 diagnoses & fixes" --> Main
+    end
+    Main -. "systemd / launchd" .-> Users["👥 Users via Discord / Telegram / etc"]
+    You["👤 You via SSH / VS Code / tmux"] -- "connect when main is down" --> Rescue
 ```
 
 **Main OpenClaw Gateway** — Your primary AI agent system. Handles all day-to-day operations: chat channels, cron jobs, sessions, etc.
