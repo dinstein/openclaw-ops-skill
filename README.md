@@ -1,5 +1,7 @@
 # openclaw-ops `v1.0.0`
 
+[English](README.md) | [中文](README_CN.md)
+
 A skill that teaches any AI agent how to operate and maintain an [OpenClaw](https://openclaw.ai) Gateway running as a persistent service.
 
 Works with **any agent that has shell access** — Claude Code, Codex, OpenClaw, Pi, or any AI coding agent running on the same machine as the OpenClaw Gateway.
