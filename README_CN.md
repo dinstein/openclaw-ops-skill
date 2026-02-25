@@ -65,6 +65,7 @@ Rescue Agent: 运行 openclaw doctor → 报告状态、孤立文件数量、
 
 第三方平台，支持远程管理和操控服务器上的 Agent：
 
+- [Happy Coder](https://github.com/anthropics/happy-coder) — 开源 Web UI，远程访问 Claude Code
 - [Hapi](https://hapi.com) — 远程 Agent 管理平台
 - 类似支持远程 shell Agent 访问的产品
 
