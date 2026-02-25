@@ -268,7 +268,11 @@ loginctl enable-linger $(whoami)
 ```bash
 mkdir -p ~/.config/systemd/user
 
-cat > ~/.config/systemd/user/openclaw-gateway.service << 'EOF'
+# Detect openclaw binary path
+OPENCLAW_BIN=$(which openclaw)
+echo "Using openclaw at: $OPENCLAW_BIN"
+
+cat > ~/.config/systemd/user/openclaw-gateway.service << EOF
 [Unit]
 Description=OpenClaw Gateway
 After=network-online.target
@@ -277,7 +281,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 EnvironmentFile=%h/.openclaw/env
-ExecStart=%h/.npm-global/bin/openclaw gateway start --foreground
+ExecStart=${OPENCLAW_BIN} gateway start --foreground
 Restart=on-failure
 RestartSec=5
 
@@ -286,7 +290,7 @@ WantedBy=default.target
 EOF
 ```
 
-**Adjust `ExecStart` path** to match actual openclaw binary location (`which openclaw`).
+**Note:** The `ExecStart` path is auto-detected via `which openclaw`. If openclaw is installed later or moved, update this path manually.
 
 #### Create env file
 
@@ -563,7 +567,7 @@ mkdir -p "$BACKUP_DIR"
 
 # Core (cross-platform)
 cp ~/.openclaw/openclaw.json "$BACKUP_DIR/"
-cp ~/.openclaw/env "$BACKUP_DIR/"
+[ -f ~/.openclaw/env ] && cp ~/.openclaw/env "$BACKUP_DIR/" || echo "No env file (tokens may be in systemd drop-in or plist)"
 cp -r ~/.openclaw/agents "$BACKUP_DIR/"
 cp -r ~/.openclaw/devices "$BACKUP_DIR/"
 cp -r ~/.openclaw/workspace "$BACKUP_DIR/"
