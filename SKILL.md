@@ -20,16 +20,36 @@ echo "Platform: $OS"
 
 ## 1. Status Check
 
+### Quick diagnosis (cross-platform)
+
 ```bash
-# OpenClaw self-check (cross-platform)
+# Comprehensive health check — run this FIRST
+openclaw doctor
+
+# Lighter status check
 openclaw status
 
-# Config validation (cross-platform)
+# Config validation
 python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json')); print('JSON OK')"
 
-# Process alive (cross-platform)
+# Process alive
 pgrep -af openclaw
 ```
+
+`openclaw doctor` checks:
+- **Legacy state** — orphan session files, stale keys
+- **State integrity** — orphan transcripts consuming disk
+- **Session locks** — stale locks from crashed processes
+- **Other gateway services** — conflicting services on the same machine
+- **Skills status** — eligible, missing requirements, blocked
+- **Plugins** — loaded, disabled, errors
+- **Channels** — connectivity test (Telegram, Discord, etc.)
+- **Agents** — registered agents list
+- **Channel warnings** — config issues (e.g. non-numeric guild channel IDs)
+
+If `openclaw doctor` reports fixable issues, run `openclaw doctor --fix` to auto-repair.
+
+### Service-level check
 
 **Linux (systemd):**
 ```bash
@@ -44,10 +64,10 @@ lsof -iTCP:18789 -sTCP:LISTEN
 ```
 
 **Interpreting results:**
-- Service running + port listening + `openclaw status` clean = healthy
+- Service running + port listening + `openclaw doctor` clean = healthy
 - Service not running = see §3 Service Restart/Recovery
 - Port not listening but process running = config issue (wrong bind address/port)
-- `openclaw status` shows errors = see §2 Config Repair
+- `openclaw doctor` shows errors = fix them first, then restart if needed
 
 ## 2. Configuration Repair
 
