@@ -46,15 +46,6 @@ reinstalls dependencies → restarts → still failing →
 rolls back to previous version → gateway is back online
 ```
 
-**Example 3: Out of memory crash**
-```
-You: "OpenClaw stopped responding"
-
-Rescue agent: checks systemctl status → reads crash logs → finds ENOMEM →
-reports "Out of memory, Node process killed. Memory usage is 94%.
-Want me to free some memory and restart?"
-```
-
 ### 🟢 Health Check: Main Gateway is Running
 
 The main OpenClaw is working fine, but you want to verify health, update, or clean up.

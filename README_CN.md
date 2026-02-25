@@ -46,15 +46,6 @@ Rescue Agent: 查崩溃日志 → 发现 MODULE_NOT_FOUND，某个插件被移�
 回滚到上个版本 → Gateway 恢复正常
 ```
 
-**示例 3：内存不足崩溃**
-```
-你: "OpenClaw 没响应了"
-
-Rescue Agent: 检查 systemctl 状态 → 读取崩溃日志 → 发现 ENOMEM →
-回复 "内存不足，Node 进程被杀。内存使用率 94%。
-需要我释放一些内存然后重启吗？"
-```
-
 ### 🟢 健康检查：主 Gateway 运行中
 
 主 OpenClaw 正常运行，你想确认运行状态、升级或清理。
