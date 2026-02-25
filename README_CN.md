@@ -29,8 +29,26 @@ graph LR
 
 主 OpenClaw 崩溃、配置损坏或无法启动。你连接到 Rescue Agent 让它修复。
 
+**示例 1：改了配置后启动不了**
 ```
-你: "OpenClaw 挂了，帮我看看"
+你: "我改了 openclaw.json，现在启动不了了"
+
+Rescue Agent: 校验 JSON → 发现第 47 行多了个逗号 →
+备份文件 → 修复语法 → 重启 Gateway → 验证健康状态
+```
+
+**示例 2：升级后崩溃**
+```
+你: "升级了 OpenClaw 之后 Gateway 一直崩"
+
+Rescue Agent: 查崩溃日志 → 发现 MODULE_NOT_FOUND，某个插件被移除了 →
+重装依赖 → 重启 → 还是挂 →
+回滚到上个版本 → Gateway 恢复正常
+```
+
+**示例 3：内存不足崩溃**
+```
+你: "OpenClaw 没响应了"
 
 Rescue Agent: 检查 systemctl 状态 → 读取崩溃日志 → 发现 ENOMEM →
 回复 "内存不足，Node 进程被杀。内存使用率 94%。

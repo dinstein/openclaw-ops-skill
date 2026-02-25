@@ -29,8 +29,26 @@ graph LR
 
 The main OpenClaw is crashed, misconfigured, or won't start. You connect to the rescue agent and ask it to fix things.
 
+**Example 1: Won't start after config edit**
 ```
-You: "OpenClaw is down, can you check?"
+You: "I edited openclaw.json and now it won't start"
+
+Rescue agent: validates JSON → finds trailing comma on line 47 →
+backs up file → fixes syntax → restarts gateway → verifies health
+```
+
+**Example 2: Broken after upgrade**
+```
+You: "I upgraded OpenClaw and now the gateway keeps crashing"
+
+Rescue agent: checks crash logs → finds MODULE_NOT_FOUND for a removed plugin →
+reinstalls dependencies → restarts → still failing →
+rolls back to previous version → gateway is back online
+```
+
+**Example 3: Out of memory crash**
+```
+You: "OpenClaw stopped responding"
 
 Rescue agent: checks systemctl status → reads crash logs → finds ENOMEM →
 reports "Out of memory, Node process killed. Memory usage is 94%.
