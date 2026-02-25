@@ -1,38 +1,51 @@
 ---
 name: openclaw-ops
-description: Use when diagnosing, repairing, or maintaining an OpenClaw Gateway running as a systemd service on the same machine. Covers status checks, config fixes, crash recovery, log analysis, systemd setup, updates, environment validation, and backup/restore.
+description: Use when diagnosing, repairing, or maintaining an OpenClaw Gateway on the same machine. Supports both Linux (systemd) and macOS (launchd). Covers status checks, config fixes, crash recovery, log analysis, service setup, updates, environment validation, and backup/restore.
 ---
 
 # OpenClaw Operations
 
-You are a rescue agent (Claude Code or secondary OpenClaw instance) operating on a machine running OpenClaw Gateway as a systemd user service. Your job is to diagnose, fix, and maintain the main OpenClaw instance.
+You are a rescue agent (Claude Code or secondary OpenClaw instance) operating on a machine running OpenClaw Gateway as a persistent service. Your job is to diagnose, fix, and maintain the main OpenClaw instance.
 
 **Principle:** Diagnose → Judge → Act → Verify. Never skip steps.
 
-## 1. Status Check
+## Platform Detection
 
-Run these in order to assess overall health:
+Detect the platform first and use the appropriate commands throughout:
 
 ```bash
-# Service status
-systemctl --user status openclaw-gateway
+OS=$(uname -s)  # "Linux" or "Darwin"
+echo "Platform: $OS"
+```
 
-# OpenClaw self-check
+## 1. Status Check
+
+```bash
+# OpenClaw self-check (cross-platform)
 openclaw status
 
-# Config validation
+# Config validation (cross-platform)
 python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json')); print('JSON OK')"
 
-# Port listening (default 18789)
-ss -tlnp | grep 18789
-
-# Process alive
+# Process alive (cross-platform)
 pgrep -af openclaw
 ```
 
+**Linux (systemd):**
+```bash
+systemctl --user status openclaw-gateway
+ss -tlnp | grep 18789
+```
+
+**macOS (launchd):**
+```bash
+launchctl list | grep openclaw
+lsof -iTCP:18789 -sTCP:LISTEN
+```
+
 **Interpreting results:**
-- `active (running)` + port listening + `openclaw status` clean = healthy
-- `inactive/failed` = see §3 Service Restart/Recovery
+- Service running + port listening + `openclaw status` clean = healthy
+- Service not running = see §3 Service Restart/Recovery
 - Port not listening but process running = config issue (wrong bind address/port)
 - `openclaw status` shows errors = see §2 Config Repair
 
@@ -61,8 +74,8 @@ If this fails, the error message shows the line/position. Common causes:
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| Channel not connecting | Missing/wrong token in env | Check `~/.openclaw/env` has correct token vars |
-| "device identity mismatch" | systemd env token ≠ openclaw.json token | Sync tokens between env file and config |
+| Channel not connecting | Missing/wrong token in env | Check env file has correct token vars |
+| "device identity mismatch" | Service env token ≠ openclaw.json token | Sync tokens between env file and config |
 | Agent not routing | `bindings` field misconfigured | Bindings go at top-level, not inside `agents.list[].routing` |
 | Discord bot offline | Wrong guild ID or missing intents | Verify guild ID, check Discord developer portal for intents |
 
@@ -79,6 +92,7 @@ Then restart (§3) if config changes require it.
 
 ### Standard restart
 
+**Linux:**
 ```bash
 systemctl --user restart openclaw-gateway
 sleep 3
@@ -86,12 +100,20 @@ systemctl --user status openclaw-gateway
 journalctl --user -u openclaw-gateway -n 20 --no-pager
 ```
 
+**macOS:**
+```bash
+PLIST_LABEL="com.openclaw.gateway"  # adjust if different
+launchctl kickstart -k "gui/$(id -u)/$PLIST_LABEL"
+sleep 3
+launchctl list | grep openclaw
+# Check log file (see §4 for log location)
+```
+
 **Always verify** status + recent logs after restart.
 
 ### Crash recovery
 
-If the service is in `failed` state:
-
+**Linux:**
 ```bash
 # 1. Find out why it crashed
 journalctl --user -u openclaw-gateway --since "1 hour ago" --no-pager | grep -iE "error|crash|fatal|SIGTERM|OOM"
@@ -100,22 +122,29 @@ journalctl --user -u openclaw-gateway --since "1 hour ago" --no-pager | grep -iE
 free -h
 df -h ~
 
-# 3. Fix root cause (config, disk, memory) BEFORE restarting
-
-# 4. Restart
-systemctl --user restart openclaw-gateway
-
-# 5. Verify
-sleep 5
-systemctl --user status openclaw-gateway
+# 3. Fix root cause BEFORE restarting
+# 4. Restart and verify (see above)
 ```
 
-**Do NOT** blindly restart without checking logs first. Repeated restarts without fixing the root cause waste time.
+**macOS:**
+```bash
+# 1. Check crash logs
+log show --predicate 'process == "node"' --last 1h | grep -iE "error|crash|fatal"
+# Also check the log file if configured in plist (see §4)
+
+# 2. Check resources
+vm_stat | head -5
+df -h ~
+
+# 3. Fix root cause BEFORE restarting
+```
+
+**Do NOT** blindly restart without checking logs first.
 
 ### Service won't start at all
 
 ```bash
-# Try manual start for better error output
+# Try manual start for better error output (cross-platform)
 cd ~/.openclaw && npx openclaw gateway start
 
 # Check Node.js is available
@@ -127,7 +156,7 @@ openclaw --version
 
 ## 4. Log Diagnosis
 
-### Basic log commands
+### Linux (journalctl)
 
 ```bash
 # Last 50 lines
@@ -143,28 +172,58 @@ journalctl --user -u openclaw-gateway -f
 journalctl --user -u openclaw-gateway --no-pager | grep -iE "error|warn|fatal"
 ```
 
-### Common error patterns
+### macOS (log files)
+
+macOS launchd logs go to the files specified in the plist (`StandardOutPath` / `StandardErrorPath`):
+
+```bash
+# Default log locations (adjust to match your plist)
+LOG_DIR="$HOME/.openclaw/logs"
+tail -50 "$LOG_DIR/gateway.log"
+tail -50 "$LOG_DIR/gateway-error.log"
+
+# Follow live
+tail -f "$LOG_DIR/gateway.log"
+
+# Filter errors
+grep -iE "error|warn|fatal" "$LOG_DIR/gateway.log"
+
+# macOS unified log (if process logs there)
+log show --predicate 'process == "node"' --last 30m
+```
+
+### Common error patterns (both platforms)
 
 | Log pattern | Meaning | Action |
 |------------|---------|--------|
-| `EADDRINUSE` | Port already in use | `ss -tlnp \| grep <port>`, kill conflicting process or change port |
-| `ECONNREFUSED` | Upstream service unreachable | Check network, Tailscale, API endpoint |
-| `Invalid token` / `401` / `403` | Auth failure | Check tokens in `~/.openclaw/env` |
-| `ENOMEM` / `JavaScript heap` | Out of memory | Check `free -h`, increase Node heap or free RAM |
+| `EADDRINUSE` | Port already in use | Find conflicting process and kill or change port |
+| `ECONNREFUSED` | Upstream unreachable | Check network, Tailscale, API endpoint |
+| `Invalid token` / `401` / `403` | Auth failure | Check tokens in env file |
+| `ENOMEM` / `JavaScript heap` | Out of memory | Check memory, increase Node heap |
 | `SyntaxError` in config | Bad JSON | See §2 Config Repair |
-| `MODULE_NOT_FOUND` | Missing dependency | `cd ~/.npm-global/lib/node_modules/openclaw && npm install` |
+| `MODULE_NOT_FOUND` | Missing dependency | Reinstall openclaw dependencies |
 
-## 5. systemd Initial Setup
+**Port conflict resolution:**
 
-For a fresh machine that needs OpenClaw as a persistent service:
+```bash
+# Linux
+ss -tlnp | grep <port>
 
-### Step 1: Enable linger (persist after logout)
+# macOS
+lsof -iTCP:<port> -sTCP:LISTEN
+```
+
+## 5. Service Initial Setup
+
+### Linux (systemd)
+
+#### Enable linger
 
 ```bash
 loginctl enable-linger $(whoami)
 ```
 
-### Step 2: Create service file
+#### Create service file
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -189,7 +248,7 @@ EOF
 
 **Adjust `ExecStart` path** to match actual openclaw binary location (`which openclaw`).
 
-### Step 3: Create env file
+#### Create env file
 
 ```bash
 cat > ~/.openclaw/env << 'EOF'
@@ -200,7 +259,7 @@ EOF
 chmod 600 ~/.openclaw/env
 ```
 
-### Step 4: Enable and start
+#### Enable and start
 
 ```bash
 systemctl --user daemon-reload
@@ -210,16 +269,13 @@ sleep 3
 systemctl --user status openclaw-gateway
 ```
 
-### Custom environment overrides
-
-For overrides that survive OpenClaw upgrades (which may overwrite the main service file):
+#### Custom overrides (survive upgrades)
 
 ```bash
 mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d
 
 cat > ~/.config/systemd/user/openclaw-gateway.service.d/env.conf << 'EOF'
 [Service]
-# Additional env vars or overrides
 Environment=NODE_OPTIONS=--max-old-space-size=4096
 EOF
 
@@ -227,9 +283,125 @@ systemctl --user daemon-reload
 systemctl --user restart openclaw-gateway
 ```
 
+### macOS (launchd)
+
+#### Create plist
+
+```bash
+mkdir -p ~/.openclaw/logs
+
+cat > ~/Library/LaunchAgents/com.openclaw.gateway.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.openclaw.gateway</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/node</string>
+        <string>/usr/local/bin/openclaw</string>
+        <string>gateway</string>
+        <string>start</string>
+        <string>--foreground</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>HOMEDIR/.openclaw</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+        <!-- Add tokens here or source from env file via wrapper script -->
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>HOMEDIR/.openclaw/logs/gateway.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>HOMEDIR/.openclaw/logs/gateway-error.log</string>
+
+    <key>ThrottleInterval</key>
+    <integer>5</integer>
+</dict>
+</plist>
+EOF
+
+# Replace HOMEDIR with actual home path (plist doesn't expand ~)
+sed -i '' "s|HOMEDIR|$HOME|g" ~/Library/LaunchAgents/com.openclaw.gateway.plist
+```
+
+**Adjust paths:**
+- `node` path: use `which node` (may be `/opt/homebrew/bin/node` on Apple Silicon)
+- `openclaw` path: use `which openclaw`
+
+#### Environment variables
+
+launchd plists don't support `EnvironmentFile`. Two approaches:
+
+**Option A — Inline in plist** (for few vars):
+Add each token directly in the `EnvironmentVariables` dict.
+
+**Option B — Wrapper script** (recommended for many vars):
+```bash
+cat > ~/.openclaw/start-gateway.sh << 'EOF'
+#!/bin/bash
+set -a
+source "$HOME/.openclaw/env"
+set +a
+exec openclaw gateway start --foreground
+EOF
+chmod +x ~/.openclaw/start-gateway.sh
+```
+
+Then update plist `ProgramArguments` to:
+```xml
+<array>
+    <string>/bin/bash</string>
+    <string>HOMEDIR/.openclaw/start-gateway.sh</string>
+</array>
+```
+
+#### Create env file
+
+```bash
+cat > ~/.openclaw/env << 'EOF'
+# Add required tokens here
+# OPENCLAW_TOKEN=xxx
+# DISCORD_TOKEN=xxx
+EOF
+chmod 600 ~/.openclaw/env
+```
+
+#### Load and start
+
+```bash
+launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
+sleep 3
+launchctl list | grep openclaw
+tail -20 ~/.openclaw/logs/gateway.log
+```
+
+#### Unload (stop permanently)
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.openclaw.gateway.plist
+```
+
 ## 6. Update & Upgrade
 
-### Check for updates
+### Check for updates (cross-platform)
 
 ```bash
 CURRENT=$(openclaw --version)
@@ -248,59 +420,67 @@ npm update -g openclaw
 
 # 3. Verify new version
 openclaw --version
+```
 
-# 4. Restart service
+**Linux — restart:**
+```bash
 systemctl --user restart openclaw-gateway
-
-# 5. Verify
 sleep 5
 systemctl --user status openclaw-gateway
-openclaw status
 ```
+
+**macOS — restart:**
+```bash
+launchctl kickstart -k "gui/$(id -u)/com.openclaw.gateway"
+sleep 5
+launchctl list | grep openclaw
+tail -20 ~/.openclaw/logs/gateway.log
+```
+
+Then run `openclaw status` to verify.
 
 ### Rollback
 
-If the new version breaks things:
-
 ```bash
-# Install specific version
 npm install -g openclaw@<previous_version>
-
 # Restore config if needed
 cp ~/.openclaw/openclaw.json.pre-upgrade.<timestamp> ~/.openclaw/openclaw.json
-
-# Restart
-systemctl --user restart openclaw-gateway
+# Restart (use platform-appropriate command above)
 ```
 
 ## 7. Environment Check
 
-Validate the runtime environment is healthy:
-
 ```bash
-# Node.js version (requires 18+)
-node -v
-
-# npm global prefix
-npm config get prefix
-
-# openclaw binary location
+# Cross-platform checks
+node -v                    # Requires 18+
 which openclaw
-
-# openclaw version
 openclaw --version
-
-# Check disk space
 df -h ~
 
-# Check memory
+# Linux-specific
 free -h
-
-# Check port conflicts
 ss -tlnp | grep 18789
+tailscale status 2>/dev/null
 
-# Tailscale (if used)
-tailscale status 2>/dev/null || echo "Tailscale not installed/running"
+# macOS-specific
+vm_stat | head -5
+lsof -iTCP:18789 -sTCP:LISTEN
+/Applications/Tailscale.app/Contents/MacOS/Tailscale status 2>/dev/null || tailscale status 2>/dev/null
+```
+
+### npm path issues (macOS)
+
+If `openclaw` not found after install:
+
+```bash
+# Check global prefix
+npm config get prefix
+
+# Homebrew Node
+export PATH="/opt/homebrew/bin:$PATH"
+
+# Or npm global bin
+export PATH="$(npm config get prefix)/bin:$PATH"
 ```
 
 ### Dependency integrity
@@ -308,8 +488,8 @@ tailscale status 2>/dev/null || echo "Tailscale not installed/running"
 If `MODULE_NOT_FOUND` errors appear:
 
 ```bash
-OPENCLAW_DIR=$(dirname $(dirname $(which openclaw)))
-cd "$OPENCLAW_DIR/lib/node_modules/openclaw"
+OPENCLAW_DIR=$(npm root -g)/openclaw
+cd "$OPENCLAW_DIR"
 npm install --production
 ```
 
@@ -323,7 +503,15 @@ npm install --production
 ├── env                    # Secrets/tokens (CRITICAL)
 ├── agents/                # Agent configs & auth profiles
 ├── devices/               # Paired devices
-└── workspace/             # Agent workspace (SOUL.md, MEMORY.md, skills, memory/)
+└── workspace/             # Agent workspace
+
+# Linux only:
+~/.config/systemd/user/
+├── openclaw-gateway.service
+└── openclaw-gateway.service.d/
+
+# macOS only:
+~/Library/LaunchAgents/com.openclaw.gateway.plist
 ```
 
 ### Backup
@@ -332,20 +520,20 @@ npm install --production
 BACKUP_DIR=~/openclaw-backup-$(date +%Y%m%d-%H%M%S)
 mkdir -p "$BACKUP_DIR"
 
-# Config + secrets
+# Core (cross-platform)
 cp ~/.openclaw/openclaw.json "$BACKUP_DIR/"
 cp ~/.openclaw/env "$BACKUP_DIR/"
-
-# Agent data
 cp -r ~/.openclaw/agents "$BACKUP_DIR/"
 cp -r ~/.openclaw/devices "$BACKUP_DIR/"
-
-# Workspace (if not git-managed separately)
 cp -r ~/.openclaw/workspace "$BACKUP_DIR/"
 
-# systemd service
-cp ~/.config/systemd/user/openclaw-gateway.service "$BACKUP_DIR/" 2>/dev/null
-cp -r ~/.config/systemd/user/openclaw-gateway.service.d "$BACKUP_DIR/" 2>/dev/null
+# Service config
+if [ "$(uname -s)" = "Linux" ]; then
+    cp ~/.config/systemd/user/openclaw-gateway.service "$BACKUP_DIR/" 2>/dev/null
+    cp -r ~/.config/systemd/user/openclaw-gateway.service.d "$BACKUP_DIR/" 2>/dev/null
+elif [ "$(uname -s)" = "Darwin" ]; then
+    cp ~/Library/LaunchAgents/com.openclaw.gateway.plist "$BACKUP_DIR/" 2>/dev/null
+fi
 
 echo "Backup saved to $BACKUP_DIR"
 ```
@@ -355,8 +543,12 @@ echo "Backup saved to $BACKUP_DIR"
 ```bash
 BACKUP_DIR=~/openclaw-backup-<timestamp>
 
-# Stop service first
-systemctl --user stop openclaw-gateway
+# Stop service
+if [ "$(uname -s)" = "Linux" ]; then
+    systemctl --user stop openclaw-gateway
+else
+    launchctl unload ~/Library/LaunchAgents/com.openclaw.gateway.plist 2>/dev/null
+fi
 
 # Restore files
 cp "$BACKUP_DIR/openclaw.json" ~/.openclaw/
@@ -364,13 +556,18 @@ cp "$BACKUP_DIR/env" ~/.openclaw/
 cp -r "$BACKUP_DIR/agents" ~/.openclaw/
 cp -r "$BACKUP_DIR/devices" ~/.openclaw/
 
-# Validate config
+# Validate
 python3 -c "import json; json.load(open('$HOME/.openclaw/openclaw.json')); print('JSON OK')"
 
-# Restart
-systemctl --user start openclaw-gateway
+# Start service
+if [ "$(uname -s)" = "Linux" ]; then
+    systemctl --user start openclaw-gateway
+else
+    launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
+fi
+
 sleep 3
-systemctl --user status openclaw-gateway
+openclaw status
 ```
 
 ## Safety Rules
@@ -390,6 +587,7 @@ systemctl --user status openclaw-gateway
 ├── openclaw.json              # Main config
 ├── openclaw.json.bak          # Auto-backup
 ├── env                        # Environment variables (secrets)
+├── logs/                      # macOS: launchd log output
 ├── agents/                    # Per-agent configs
 │   └── <agent>/agent/
 │       ├── auth-profiles.json
@@ -402,8 +600,13 @@ systemctl --user status openclaw-gateway
 │   └── skills/                # Local skills
 └── sessions/                  # Session logs
 
+# Linux service config:
 ~/.config/systemd/user/
-├── openclaw-gateway.service                # Main service file
+├── openclaw-gateway.service
 └── openclaw-gateway.service.d/
-    └── env.conf                            # Custom env overrides (survives upgrades)
+    └── env.conf               # Custom env overrides
+
+# macOS service config:
+~/Library/LaunchAgents/
+└── com.openclaw.gateway.plist
 ```
