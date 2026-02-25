@@ -1,4 +1,4 @@
-# openclaw-ops `v1.1.0`
+# openclaw-ops
 
 [English](README.md) | [中文](README_CN.md)
 
