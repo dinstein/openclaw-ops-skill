@@ -253,198 +253,7 @@ ss -tlnp | grep <port>
 lsof -iTCP:<port> -sTCP:LISTEN
 ```
 
-## 5. Service Initial Setup
-
-### Linux (systemd)
-
-#### Enable linger
-
-```bash
-loginctl enable-linger $(whoami)
-```
-
-#### Create service file
-
-```bash
-mkdir -p ~/.config/systemd/user
-
-# Detect openclaw binary path
-OPENCLAW_BIN=$(which openclaw)
-echo "Using openclaw at: $OPENCLAW_BIN"
-
-cat > ~/.config/systemd/user/openclaw-gateway.service << EOF
-[Unit]
-Description=OpenClaw Gateway
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-EnvironmentFile=%h/.openclaw/env
-ExecStart=${OPENCLAW_BIN} gateway start --foreground
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=default.target
-EOF
-```
-
-**Note:** The `ExecStart` path is auto-detected via `which openclaw`. If openclaw is installed later or moved, update this path manually.
-
-#### Create env file
-
-```bash
-cat > ~/.openclaw/env << 'EOF'
-# Add required tokens here, e.g.:
-# OPENCLAW_TOKEN=xxx
-# DISCORD_TOKEN=xxx
-EOF
-chmod 600 ~/.openclaw/env
-```
-
-#### Enable and start
-
-```bash
-systemctl --user daemon-reload
-systemctl --user enable openclaw-gateway
-systemctl --user start openclaw-gateway
-sleep 3
-systemctl --user status openclaw-gateway
-```
-
-#### Custom overrides (survive upgrades)
-
-```bash
-mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d
-
-cat > ~/.config/systemd/user/openclaw-gateway.service.d/env.conf << 'EOF'
-[Service]
-Environment=NODE_OPTIONS=--max-old-space-size=4096
-EOF
-
-systemctl --user daemon-reload
-systemctl --user restart openclaw-gateway
-```
-
-### macOS (launchd)
-
-#### Create plist
-
-```bash
-mkdir -p ~/.openclaw/logs
-
-cat > ~/Library/LaunchAgents/com.openclaw.gateway.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>com.openclaw.gateway</string>
-
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/local/bin/node</string>
-        <string>/usr/local/bin/openclaw</string>
-        <string>gateway</string>
-        <string>start</string>
-        <string>--foreground</string>
-    </array>
-
-    <key>WorkingDirectory</key>
-    <string>HOMEDIR/.openclaw</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
-        <!-- Add tokens here or source from env file via wrapper script -->
-    </dict>
-
-    <key>RunAtLoad</key>
-    <true/>
-
-    <key>KeepAlive</key>
-    <dict>
-        <key>SuccessfulExit</key>
-        <false/>
-    </dict>
-
-    <key>StandardOutPath</key>
-    <string>HOMEDIR/.openclaw/logs/gateway.log</string>
-
-    <key>StandardErrorPath</key>
-    <string>HOMEDIR/.openclaw/logs/gateway-error.log</string>
-
-    <key>ThrottleInterval</key>
-    <integer>5</integer>
-</dict>
-</plist>
-EOF
-
-# Replace HOMEDIR with actual home path (plist doesn't expand ~)
-# Note: sed -i '' is macOS syntax; on Linux this would be sed -i (without '')
-sed -i '' "s|HOMEDIR|$HOME|g" ~/Library/LaunchAgents/com.openclaw.gateway.plist
-```
-
-**Adjust paths:**
-- `node` path: use `which node` (may be `/opt/homebrew/bin/node` on Apple Silicon)
-- `openclaw` path: use `which openclaw`
-
-#### Environment variables
-
-launchd plists don't support `EnvironmentFile`. Two approaches:
-
-**Option A — Inline in plist** (for few vars):
-Add each token directly in the `EnvironmentVariables` dict.
-
-**Option B — Wrapper script** (recommended for many vars):
-```bash
-cat > ~/.openclaw/start-gateway.sh << 'EOF'
-#!/bin/bash
-set -a
-source "$HOME/.openclaw/env"
-set +a
-exec openclaw gateway start --foreground
-EOF
-chmod +x ~/.openclaw/start-gateway.sh
-```
-
-Then update plist `ProgramArguments` to:
-```xml
-<array>
-    <string>/bin/bash</string>
-    <string>HOMEDIR/.openclaw/start-gateway.sh</string>
-</array>
-```
-
-#### Create env file
-
-```bash
-cat > ~/.openclaw/env << 'EOF'
-# Add required tokens here
-# OPENCLAW_TOKEN=xxx
-# DISCORD_TOKEN=xxx
-EOF
-chmod 600 ~/.openclaw/env
-```
-
-#### Load and start
-
-```bash
-launchctl load ~/Library/LaunchAgents/com.openclaw.gateway.plist
-sleep 3
-launchctl list | grep openclaw
-tail -20 ~/.openclaw/logs/gateway.log
-```
-
-#### Unload (stop permanently)
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.openclaw.gateway.plist
-```
-
-## 6. Update & Upgrade
+## 5. Update & Upgrade
 
 ### Check for updates (cross-platform)
 
@@ -493,7 +302,7 @@ cp ~/.openclaw/openclaw.json.pre-upgrade.<timestamp> ~/.openclaw/openclaw.json
 # Restart (use platform-appropriate command above)
 ```
 
-## 7. Environment Check
+## 6. Environment Check
 
 ```bash
 # Cross-platform checks
@@ -538,7 +347,7 @@ cd "$OPENCLAW_DIR"
 npm install --production
 ```
 
-## 8. Backup & Restore
+## 7. Backup & Restore
 
 ### Critical files to back up
 
@@ -615,19 +424,19 @@ sleep 3
 openclaw status
 ```
 
-## 9. Troubleshooting Quick Index
+## 8. Troubleshooting Quick Index
 
 | Symptom | Start here |
 |---------|-----------|
-| Gateway won't start | §3 → §4 → §7 |
+| Gateway won't start | §3 → §4 → §6 |
 | Channel disconnected (Discord/Telegram) | §2 (config) → §4 (logs) |
 | Config broken after edit | §2 (repair + schema) |
-| Disk filling up | §9a Session Cleanup |
-| After upgrade something broke | §6 (rollback) → §9b Doctor Diff |
-| Tailscale not proxying | §9c Tailscale Serve |
-| Need periodic health monitoring | §9d Health Check Cron |
+| Disk filling up | §8a Session Cleanup |
+| After upgrade something broke | §5 (rollback) → §8b Doctor Diff |
+| Tailscale not proxying | §8c Tailscale Serve |
+| Need periodic health monitoring | §8d Health Check Cron |
 
-### 9a. Session & Transcript Cleanup
+### 8a. Session & Transcript Cleanup
 
 `openclaw doctor` may report orphan transcripts consuming disk:
 
@@ -656,7 +465,7 @@ for agent_dir in ~/.openclaw/agents/*/; do
 done
 ```
 
-### 9b. Doctor Diff (Before/After Upgrade)
+### 8b. Doctor Diff (Before/After Upgrade)
 
 Capture `openclaw doctor` output before and after upgrades to spot regressions:
 
@@ -664,7 +473,7 @@ Capture `openclaw doctor` output before and after upgrades to spot regressions:
 # Before upgrade — save baseline
 openclaw doctor 2>&1 | tee /tmp/doctor-before.txt
 
-# ... perform upgrade (§6) ...
+# ... perform upgrade (§5) ...
 
 # After upgrade — compare
 openclaw doctor 2>&1 | tee /tmp/doctor-after.txt
@@ -677,7 +486,7 @@ Look for:
 - New "legacy state" detections
 - Channel connectivity changes
 
-### 9c. Tailscale Serve Troubleshooting
+### 8c. Tailscale Serve Troubleshooting
 
 If OpenClaw uses Tailscale Serve as a reverse proxy (HTTPS → localhost):
 
@@ -706,7 +515,7 @@ tailscale serve https / http://localhost:$PORT
 tailscale serve status
 ```
 
-### 9d. Health Check Cron Template
+### 8d. Health Check Cron Template
 
 Set up periodic health monitoring using OpenClaw's cron system. Use this from your main OpenClaw agent (not the rescue agent):
 
@@ -734,7 +543,7 @@ This runs every 6 hours in an isolated session and announces results to the chat
 0 */6 * * * /usr/local/bin/openclaw doctor --non-interactive >> ~/.openclaw/logs/doctor-cron.log 2>&1
 ```
 
-## 10. `openclaw doctor` Reference
+## 9. `openclaw doctor` Reference
 
 ### Flags
 
@@ -808,11 +617,11 @@ When a user asks for help, follow these patterns:
 
 **"I changed the config and broke it"** → §2 Config Repair → validate → restart if needed
 
-**"Set it up from scratch"** → Detect platform → §5 Service Initial Setup → §1 verify
+**"Set it up from scratch"** → Detect platform → `openclaw daemon install` → §1 verify
 
-**"Update it"** → §9b Doctor Diff (baseline) → §6 Update → §9b (compare) → verify
+**"Update it"** → §8b Doctor Diff (baseline) → §5 Update → §8b (compare) → verify
 
-**"Clean up disk space"** → §9a Session Cleanup → report freed space
+**"Clean up disk space"** → §8a Session Cleanup → report freed space
 
 **General debugging flow:**
 1. `openclaw doctor` — get the big picture
