@@ -1,6 +1,8 @@
 ---
 name: openclaw-ops
+version: 1.0.0
 description: Use when diagnosing, repairing, or maintaining an OpenClaw Gateway on the same machine. Supports both Linux (systemd) and macOS (launchd). Covers status checks, config fixes, crash recovery, log analysis, service setup, updates, environment validation, and backup/restore.
+repository: https://github.com/dinstein/openclaw-ops-skill
 ---
 
 # OpenClaw Operations

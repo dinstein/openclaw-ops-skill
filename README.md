@@ -1,4 +1,4 @@
-# openclaw-ops
+# openclaw-ops `v1.0.0`
 
 An [OpenClaw](https://openclaw.ai) skill for operational maintenance of OpenClaw Gateway running as a persistent service.
 
@@ -140,6 +140,16 @@ The skill enforces these rules:
 - Never print secrets (env files)
 - Never delete workspace files without confirmation
 - Always verify after restart
+
+## Versioning
+
+This skill follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** — breaking changes to skill structure or safety rules
+- **MINOR** — new modules, new platform support, new commands
+- **PATCH** — fixes, typos, improved descriptions
+
+Current version: `1.0.0`
 
 ## License
 
